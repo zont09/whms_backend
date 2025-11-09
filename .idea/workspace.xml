@@ -4,31 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="video call">
-      <change afterPath="$PROJECT_DIR$/src/chat/chat_routes.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/chat/chat_server.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/chat/db.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/chat/docker_compose.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/chat/models.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/README" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/am/final.mdl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/conf/mfcc.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/conf/model.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/graph/HCLG.fst" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/graph/phones/word_boundary.int" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/graph/words.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ivector/final.dubm" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ivector/final.ie" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ivector/final.mat" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ivector/global_cmvn.stats" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ivector/online_cmvn.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model/ivector/splice.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/video/video_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/video/video_server.py" afterDir="false" />
-    </list>
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="uodate video call + connect mogodb + setup chat message" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -108,7 +84,7 @@
       <workItem from="1762334065194" duration="11000" />
       <workItem from="1762658709032" duration="13000" />
       <workItem from="1762659810740" duration="39000" />
-      <workItem from="1762697840971" duration="1672000" />
+      <workItem from="1762697840971" duration="2002000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -118,7 +94,15 @@
       <option name="project" value="LOCAL" />
       <updated>1762058215319</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="uodate video call + connect mogodb + setup chat message">
+      <option name="closed" value="true" />
+      <created>1762699839344</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1762699839344</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -126,6 +110,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="video call" />
-    <option name="LAST_COMMIT_MESSAGE" value="video call" />
+    <MESSAGE value="uodate video call + connect mogodb + setup chat message" />
+    <option name="LAST_COMMIT_MESSAGE" value="uodate video call + connect mogodb + setup chat message" />
   </component>
 </project>
