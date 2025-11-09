@@ -1,14 +1,14 @@
 # video_server/server.py
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from typing import Dict, List
 import uvicorn
 import json
 from collections import defaultdict
 
-app = FastAPI()
+router = APIRouter()
 rooms: Dict[str, List[WebSocket]] = defaultdict(list)
 
-@app.websocket("/ws/{room_id}/{client_id}")
+@router.websocket("/ws/{room_id}/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str):
     await websocket.accept()
     rooms[room_id].append(websocket)

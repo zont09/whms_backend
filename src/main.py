@@ -1,43 +1,11 @@
-# server.py
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from typing import Dict, List
-import uvicorn
-import json
-from collections import defaultdict
+from fastapi import FastAPI
+from src.chat.chat_routes import router as chat_router
+from src.video.video_server import router as call_router
 
 app = FastAPI()
-rooms: Dict[str, List[WebSocket]] = defaultdict(list)
 
-@app.websocket("/ws/{room_id}/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str):
-    await websocket.accept()
-    rooms[room_id].append(websocket)
-    try:
-        # notify others about join
-        join_msg = json.dumps({"type":"join","from":client_id})
-        for peer in rooms[room_id]:
-            if peer is not websocket:
-                await peer.send_text(join_msg)
-        while True:
-            data = await websocket.receive_text()
-            msg = json.loads(data)
-            # relay to target (if provided) or broadcast
-            target = msg.get("to")
-            if target:
-                # send to specific peer by matching 'from' query param not available here;
-                # we identify peers by client_id in path and rely on clients to set 'to'
-                for peer in rooms[room_id]:
-                    # this simple server doesn't map client_id->socket; clients should include 'to' as socket index or id handled externally
-                    await peer.send_text(json.dumps(msg))
-            else:
-                for peer in rooms[room_id]:
-                    if peer is not websocket:
-                        await peer.send_text(json.dumps(msg))
-    except WebSocketDisconnect:
-        rooms[room_id].remove(websocket)
-        leave_msg = json.dumps({"type":"leave","from":client_id})
-        for peer in rooms[room_id]:
-            await peer.send_text(leave_msg)
+app.include_router(chat_router, prefix="/api")
+app.include_router(call_router, prefix="/call")
 
-if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000)
+# Chạy
+# uvicorn main:app --reload --port 8000
