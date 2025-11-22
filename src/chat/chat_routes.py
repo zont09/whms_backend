@@ -1,12 +1,13 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException
-from fastapi.responses import StreamingResponse, JSONResponse
-from .db import messages_col, fs_bucket  # your db module must provide these
+from fastapi.responses import StreamingResponse, JSONResponse, Response
+from .db import messages_col, fs_bucket, db  # your db module must provide these
 from .models import MessageIn
 from bson import ObjectId
 from datetime import datetime
 from collections import defaultdict
 from typing import Dict, Optional, List
 import json, asyncio
+import base64
 
 router = APIRouter()
 # rooms: conversation_id -> mapping client_id -> WebSocket
@@ -103,47 +104,94 @@ async def load_messages(conversation_id: str, limit: int = 20, before_id: Option
 @router.post("/chats/{conversation_id}/upload")
 async def upload_file(conversation_id: str, file: UploadFile = File(...), sender_id: Optional[str] = None):
     """
-    Upload a file to GridFS (fs_bucket). fs_bucket must implement async upload_from_stream(filename, bytes, metadata=...).
+    Upload a file. For images, store as base64 in MongoDB. For other files, use GridFS.
     Return file metadata and file id (string).
     """
     data = await file.read()
-    file_id = await fs_bucket.upload_from_stream(
-        file.filename,
-        data,
-        metadata={
+    mime_type = file.content_type or "application/octet-stream"
+
+    # Check if it's an image
+    if mime_type.startswith('image/'):
+        # Store image as base64 in MongoDB for faster access
+        files_col = db['files']
+        file_doc = {
+            "filename": file.filename,
+            "mime": mime_type,
+            "data": base64.b64encode(data).decode('utf-8'),
             "conversation_id": conversation_id,
             "sender_id": sender_id,
-            "mime": file.content_type
+            "created_at": datetime.utcnow()
         }
-    )
-    return JSONResponse(content={
-        "ok": True,
-        "file_id": str(file_id),
-        "filename": file.filename,
-        "mime": file.content_type,
-        "url": f"/files/{file_id}"
-    })
+        result = await files_col.insert_one(file_doc)
+        file_id = str(result.inserted_id)
+
+        return JSONResponse(content={
+            "ok": True,
+            "file_id": file_id,
+            "filename": file.filename,
+            "mime": mime_type,
+            "url": f"/files/{file_id}"
+        })
+    else:
+        # For non-images, use GridFS
+        file_id = await fs_bucket.upload_from_stream(
+            file.filename,
+            data,
+            metadata={
+                "conversation_id": conversation_id,
+                "sender_id": sender_id,
+                "mime": mime_type
+            }
+        )
+        return JSONResponse(content={
+            "ok": True,
+            "file_id": str(file_id),
+            "filename": file.filename,
+            "mime": mime_type,
+            "url": f"/files/{file_id}"
+        })
 
 
 @router.get("/files/{file_id}")
 async def get_file(file_id: str):
     try:
-        grid_out = await fs_bucket.open_download_stream(ObjectId(file_id))
-    except Exception:
+        # Try to get from MongoDB files collection first (for images)
+        files_col = db['files']
+        file_doc = await files_col.find_one({"_id": ObjectId(file_id)})
+
+        if file_doc:
+            # Image stored as base64 in MongoDB
+            image_data = base64.b64decode(file_doc['data'])
+            return Response(
+                content=image_data,
+                media_type=file_doc.get('mime', 'image/jpeg'),
+                headers={
+                    "Cache-Control": "public, max-age=31536000",
+                    "Content-Disposition": f'inline; filename="{file_doc["filename"]}"'
+                }
+            )
+        else:
+            # Try GridFS for other files
+            grid_out = await fs_bucket.open_download_stream(ObjectId(file_id))
+
+            async def iterfile():
+                while True:
+                    chunk = await grid_out.readchunk()
+                    if not chunk:
+                        break
+                    yield chunk
+
+            return StreamingResponse(
+                iterfile(),
+                media_type=grid_out.metadata.get("mime", "application/octet-stream"),
+                headers={
+                    "content-disposition": f'attachment; filename="{grid_out.filename}"',
+                    "Cache-Control": "public, max-age=31536000"
+                }
+            )
+    except Exception as e:
+        print(f"Error getting file: {e}")
         raise HTTPException(status_code=404, detail="file not found")
-
-    async def iterfile():
-        while True:
-            chunk = await grid_out.readchunk()
-            if not chunk:
-                break
-            yield chunk
-
-    return StreamingResponse(
-        iterfile(),
-        media_type=grid_out.metadata.get("mime", "application/octet-stream"),
-        headers={"content-disposition": f'attachment; filename="{grid_out.filename}"'}
-    )
 
 
 @router.websocket("/ws/chat/{conversation_id}/{client_id}")
