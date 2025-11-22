@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="uodate video call + connect mogodb + setup chat message" />
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="uodate video call + connect mogodb + setup chat message">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/chat_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/chat_routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/chat_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/chat_server.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chat/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -19,6 +25,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="6ea8fd02-100e-4e43-a217-3b07de3e6a2f" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
@@ -84,7 +93,23 @@
       <workItem from="1762334065194" duration="11000" />
       <workItem from="1762658709032" duration="13000" />
       <workItem from="1762659810740" duration="39000" />
-      <workItem from="1762697840971" duration="2002000" />
+      <workItem from="1762697840971" duration="2192000" />
+      <workItem from="1762770839471" duration="691000" />
+      <workItem from="1763103202879" duration="5000" />
+      <workItem from="1763103277559" duration="6000" />
+      <workItem from="1763210180985" duration="2303000" />
+      <workItem from="1763213092177" duration="1164000" />
+      <workItem from="1763219873076" duration="100000" />
+      <workItem from="1763259907773" duration="716000" />
+      <workItem from="1763267857903" duration="50000" />
+      <workItem from="1763268025188" duration="2122000" />
+      <workItem from="1763357733055" duration="22000" />
+      <workItem from="1763389812662" duration="1188000" />
+      <workItem from="1763435686928" duration="603000" />
+      <workItem from="1763479636462" duration="352000" />
+      <workItem from="1763690509950" duration="603000" />
+      <workItem from="1763711779297" duration="125000" />
+      <workItem from="1763798364742" duration="609000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -102,7 +127,15 @@
       <option name="project" value="LOCAL" />
       <updated>1762699839344</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="uodate video call + connect mogodb + setup chat message">
+      <option name="closed" value="true" />
+      <created>1762699939375</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1762699939375</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

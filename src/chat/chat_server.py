@@ -1,4 +1,3 @@
-# chat_server/chat_server.py
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, HTTPException
 from fastapi.responses import JSONResponse
 from typing import Dict, List
@@ -6,51 +5,72 @@ from collections import defaultdict
 from datetime import datetime
 import json
 from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorClient
+# import the shared DB objects from your db module
+from .db import messages_col  # messages_col should be an AsyncIOMotorCollection
 
 router = APIRouter()
 
-MONGO_URI = "mongodb+srv://zont09:mgdb124536@whms.lczpcgb.mongodb.net/?appName=WHMS"
-client = AsyncIOMotorClient(MONGO_URI)
-db = client["chatdb"]
-
+# rooms: mapping conversation_id -> list of websockets
 rooms: Dict[str, List[WebSocket]] = defaultdict(list)
 
+# Startup: ensure index on conversation_id + created_at
 async def startup_event():
-    await db.messages.create_index([("groupId", 1), ("timestamp", -1)])
+    # create index if not exists
+    await messages_col.create_index([("conversation_id", 1), ("created_at", -1)])
     print("✅ MongoDB connected and index ensured")
 
 # -------------------
 # HTTP: load messages
 # -------------------
-@router.get("/groups/{group_id}/messages")
-async def get_messages(group_id: str, before: str = Query(None), limit: int = Query(50, ge=1, le=200)):
-    query = {"groupId": group_id}
+@router.get("/conversations/{conversation_id}/messages")
+async def get_messages(
+    conversation_id: str,
+    before: str = Query(None),
+    limit: int = Query(50, ge=1, le=200)
+):
+    """
+    Return messages for a conversation, paginated by ObjectId (`before` = message id).
+    Returns messages in chronological order (oldest -> newest).
+    """
+    query = {"conversation_id": conversation_id}
     if before:
         try:
             oid = ObjectId(before)
+            # find messages with _id < provided id (older)
             query["_id"] = {"$lt": oid}
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid before param")
 
-    cursor = db.messages.find(query).sort("_id", -1).limit(limit)
+    cursor = messages_col.find(query).sort("_id", -1).limit(limit)
     docs = await cursor.to_list(length=limit)
-    docs.reverse()
+    docs.reverse()  # oldest -> newest
 
+    result = []
     for d in docs:
-        d["_id"] = str(d["_id"])
-        d["timestamp"] = d["timestamp"].isoformat()
+        result.append({
+            "id": str(d["_id"]),
+            "conversation_id": d.get("conversation_id"),
+            "sender_id": d.get("sender_id"),
+            "content": d.get("content"),
+            "attachments": d.get("attachments", []),
+            "created_at": d.get("created_at").isoformat() + "Z" if d.get("created_at") else None,
+        })
 
-    return JSONResponse(content=docs)
+    return JSONResponse(content={"ok": True, "messages": result})
 
 # -------------------
 # WS: realtime chat
 # -------------------
-@router.websocket("/ws/chat/{group_id}/{username}")
-async def chat_socket(websocket: WebSocket, group_id: str, username: str):
+@router.websocket("/ws/chat/{conversation_id}/{client_id}")
+async def chat_socket(websocket: WebSocket, conversation_id: str, client_id: str):
+    """
+    Simple websocket endpoint:
+    - clients send JSON messages like {"type":"message","content":"hello","sender_id":"..."}
+    - server persists and broadcasts to all clients in the conversation
+    """
     await websocket.accept()
-    rooms[group_id].append(websocket)
-    print(f"{username} joined {group_id}")
+    rooms[conversation_id].append(websocket)
+    print(f"{client_id} joined {conversation_id}")
 
     try:
         while True:
@@ -58,40 +78,73 @@ async def chat_socket(websocket: WebSocket, group_id: str, username: str):
             try:
                 data = json.loads(raw)
             except Exception:
-                data = {"text": raw}
+                # if plain text, wrap it
+                data = {"type": "message", "content": raw}
 
-            text = data.get("text")
-            if not text:
+            # only handle message type
+            if data.get("type") != "message":
+                # ignore unknown types for now
                 continue
 
-            msg = {
-                "groupId": group_id,
-                "sender": username,
-                "text": text,
-                "timestamp": datetime.utcnow(),
-            }
-            res = await db.messages.insert_one(msg)
-            msg["_id"] = str(res.inserted_id)
-            msg["timestamp"] = msg["timestamp"].isoformat()
+            sender_id = data.get("sender_id", client_id)
+            content = data.get("content", "")
+            attachments = data.get("attachments", []) or []
 
-            payload = {"type": "chat", "message": msg}
-            await broadcast(group_id, payload)
+            # build doc to save
+            doc = {
+                "conversation_id": conversation_id,
+                "sender_id": sender_id,
+                "content": content,
+                "attachments": attachments,
+                "created_at": datetime.utcnow()
+            }
+
+            res = await messages_col.insert_one(doc)
+            doc_id = str(res.inserted_id)
+
+            # payload to broadcast
+            msg_out = {
+                "type": "message",
+                "message": {
+                    "id": doc_id,
+                    "conversation_id": conversation_id,
+                    "sender_id": sender_id,
+                    "content": content,
+                    "attachments": attachments,
+                    "created_at": doc["created_at"].isoformat() + "Z"
+                }
+            }
+
+            # broadcast (synchronous loop; keep simple)
+            text = json.dumps(msg_out)
+            for ws in list(rooms[conversation_id]):
+                try:
+                    await ws.send_text(text)
+                except Exception:
+                    try:
+                        rooms[conversation_id].remove(ws)
+                    except ValueError:
+                        pass
 
     except WebSocketDisconnect:
-        rooms[group_id].remove(websocket)
+        try:
+            rooms[conversation_id].remove(websocket)
+        except ValueError:
+            pass
         leave_payload = {
             "type": "system",
             "action": "leave",
-            "user": username,
-            "timestamp": datetime.utcnow().isoformat()
+            "user": client_id,
+            "timestamp": datetime.utcnow().isoformat() + "Z"
         }
-        await broadcast(group_id, leave_payload)
-        print(f"{username} left {group_id}")
-
-async def broadcast(group_id: str, payload: dict):
-    text = json.dumps(payload)
-    for ws in list(rooms[group_id]):
-        try:
-            await ws.send_text(text)
-        except Exception:
-            rooms[group_id].remove(ws)
+        # broadcast leave
+        text = json.dumps(leave_payload)
+        for ws in list(rooms[conversation_id]):
+            try:
+                await ws.send_text(text)
+            except Exception:
+                try:
+                    rooms[conversation_id].remove(ws)
+                except ValueError:
+                    pass
+        print(f"{client_id} left {conversation_id}")
