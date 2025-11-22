@@ -13,6 +13,7 @@ router = APIRouter()
 rooms: Dict[str, Dict[str, WebSocket]] = defaultdict(dict)
 rooms_lock = asyncio.Lock()
 
+
 def oid_to_id(doc):
     if not doc:
         return doc
@@ -21,6 +22,7 @@ def oid_to_id(doc):
         doc["id"] = str(doc["_id"])
         del doc["_id"]
     return doc
+
 
 @router.post("/chats/{conversation_id}/messages")
 async def send_message(conversation_id: str, body: MessageIn):
@@ -35,6 +37,11 @@ async def send_message(conversation_id: str, body: MessageIn):
         "attachments": [a.dict() for a in (body.attachments or [])],
         "created_at": datetime.utcnow()
     }
+
+    # Add reply_to if provided
+    if body.reply_to:
+        doc["reply_to"] = body.reply_to
+
     res = await messages_col.insert_one(doc)
     doc["_id"] = res.inserted_id
 
@@ -50,6 +57,9 @@ async def send_message(conversation_id: str, body: MessageIn):
         }
     }
 
+    if "reply_to" in doc:
+        payload["message"]["reply_to"] = doc["reply_to"]
+
     # broadcast to websocket clients in conversation
     async with rooms_lock:
         for ws in list(rooms.get(conversation_id, {}).values()):
@@ -60,6 +70,7 @@ async def send_message(conversation_id: str, body: MessageIn):
                 pass
 
     return JSONResponse(content={"ok": True, "message_id": str(res.inserted_id)})
+
 
 @router.get("/chats/{conversation_id}/messages")
 async def load_messages(conversation_id: str, limit: int = 20, before_id: Optional[str] = None):
@@ -88,6 +99,7 @@ async def load_messages(conversation_id: str, limit: int = 20, before_id: Option
             d["created_at"] = d["created_at"].isoformat() + "Z"
     return JSONResponse(content={"ok": True, "messages": docs})
 
+
 @router.post("/chats/{conversation_id}/upload")
 async def upload_file(conversation_id: str, file: UploadFile = File(...), sender_id: Optional[str] = None):
     """
@@ -95,8 +107,15 @@ async def upload_file(conversation_id: str, file: UploadFile = File(...), sender
     Return file metadata and file id (string).
     """
     data = await file.read()
-    file_id = await fs_bucket.upload_from_stream(file.filename, data,
-                metadata={"conversation_id": conversation_id, "sender_id": sender_id, "mime": file.content_type})
+    file_id = await fs_bucket.upload_from_stream(
+        file.filename,
+        data,
+        metadata={
+            "conversation_id": conversation_id,
+            "sender_id": sender_id,
+            "mime": file.content_type
+        }
+    )
     return JSONResponse(content={
         "ok": True,
         "file_id": str(file_id),
@@ -104,6 +123,7 @@ async def upload_file(conversation_id: str, file: UploadFile = File(...), sender
         "mime": file.content_type,
         "url": f"/files/{file_id}"
     })
+
 
 @router.get("/files/{file_id}")
 async def get_file(file_id: str):
@@ -119,9 +139,12 @@ async def get_file(file_id: str):
                 break
             yield chunk
 
-    return StreamingResponse(iterfile(),
+    return StreamingResponse(
+        iterfile(),
         media_type=grid_out.metadata.get("mime", "application/octet-stream"),
-        headers={"content-disposition": f'attachment; filename="{grid_out.filename}"'})
+        headers={"content-disposition": f'attachment; filename="{grid_out.filename}"'}
+    )
+
 
 @router.websocket("/ws/chat/{conversation_id}/{client_id}")
 async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
@@ -145,6 +168,7 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
                 sender = msg.get("sender_id", client_id)
                 content = msg.get("content", "")
                 attachments = msg.get("attachments", []) or []
+                reply_to = msg.get("reply_to")
 
                 # persist message into DB
                 doc = {
@@ -154,6 +178,11 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
                     "attachments": attachments,
                     "created_at": datetime.utcnow()
                 }
+
+                # Add reply_to if provided
+                if reply_to:
+                    doc["reply_to"] = reply_to
+
                 res = await messages_col.insert_one(doc)
                 doc_id = str(res.inserted_id)
 
@@ -169,6 +198,9 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
                         "created_at": doc["created_at"].isoformat() + "Z"
                     }
                 }
+
+                if reply_to:
+                    payload["message"]["reply_to"] = reply_to
 
                 # broadcast
                 async with rooms_lock:

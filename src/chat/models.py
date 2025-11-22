@@ -3,10 +3,10 @@ from typing import Optional, List
 
 
 class Attachment(BaseModel):
-    filename: Optional[str]
-    file_id: Optional[str]
-    mime: Optional[str]
-    url: Optional[str]
+    filename: Optional[str] = None
+    file_id: Optional[str] = None
+    mime: Optional[str] = None
+    url: Optional[str] = None
 
 
 class MessageIn(BaseModel):
@@ -14,6 +14,7 @@ class MessageIn(BaseModel):
     conversation_id: str
     content: Optional[str] = None
     attachments: Optional[List[Attachment]] = None
+    reply_to: Optional[str] = None  # ID của tin nhắn được reply
 
 
 class MessageOut(BaseModel):
@@ -23,3 +24,4 @@ class MessageOut(BaseModel):
     content: Optional[str]
     attachments: Optional[List[Attachment]]
     created_at: str  # ISO8601 + Z
+    reply_to: Optional[str] = None  # ID của tin nhắn được reply
