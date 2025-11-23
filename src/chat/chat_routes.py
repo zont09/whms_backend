@@ -1,13 +1,15 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse, Response
-from .db import messages_col, fs_bucket, db  # your db module must provide these
+from .db import messages_col, fs_bucket, db
 from .models import MessageIn
 from bson import ObjectId
 from datetime import datetime
 from collections import defaultdict
-from typing import Dict, Optional, List
+from typing import Dict, Optional
 import json, asyncio
 import base64
+from PIL import Image
+import io
 
 router = APIRouter()
 # rooms: conversation_id -> mapping client_id -> WebSocket
@@ -25,6 +27,31 @@ def oid_to_id(doc):
     return doc
 
 
+def generate_image_thumbnail(image_data: bytes, max_size: int = 300) -> bytes:
+    """Generate thumbnail for image with max width/height"""
+    try:
+        img = Image.open(io.BytesIO(image_data))
+
+        # Convert RGBA to RGB if necessary
+        if img.mode == 'RGBA':
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            background.paste(img, mask=img.split()[3])
+            img = background
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        # Calculate thumbnail size maintaining aspect ratio
+        img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+
+        # Save to bytes
+        output = io.BytesIO()
+        img.save(output, format='JPEG', quality=85, optimize=True)
+        return output.getvalue()
+    except Exception as e:
+        print(f"Error generating thumbnail: {e}")
+        return image_data
+
+
 @router.post("/chats/{conversation_id}/messages")
 async def send_message(conversation_id: str, body: MessageIn):
     """
@@ -39,7 +66,6 @@ async def send_message(conversation_id: str, body: MessageIn):
         "created_at": datetime.utcnow()
     }
 
-    # Add reply_to if provided
     if body.reply_to:
         doc["reply_to"] = body.reply_to
 
@@ -67,14 +93,13 @@ async def send_message(conversation_id: str, body: MessageIn):
             try:
                 await ws.send_text(json.dumps(payload))
             except Exception:
-                # ignore failures but try to keep rooms clean
                 pass
 
     return JSONResponse(content={"ok": True, "message_id": str(res.inserted_id)})
 
 
 @router.get("/chats/{conversation_id}/messages")
-async def load_messages(conversation_id: str, limit: int = 20, before_id: Optional[str] = None):
+async def load_messages(conversation_id: str, limit: int = 50, before_id: Optional[str] = None):
     """
     Load messages, paginated by before_id (ObjectId). Returns newest -> oldest limited, then reversed to chronological.
     """
@@ -82,12 +107,10 @@ async def load_messages(conversation_id: str, limit: int = 20, before_id: Option
     if before_id:
         try:
             obj = ObjectId(before_id)
-            # find the referenced doc to get its created_at (optional)
             ref = await messages_col.find_one({"_id": obj})
             if ref and "created_at" in ref:
                 q["created_at"] = {"$lt": ref["created_at"]}
             else:
-                # fallback to by _id if ref not found
                 q["_id"] = {"$lt": obj}
         except Exception:
             raise HTTPException(status_code=400, detail="invalid before_id")
@@ -104,7 +127,8 @@ async def load_messages(conversation_id: str, limit: int = 20, before_id: Option
 @router.post("/chats/{conversation_id}/upload")
 async def upload_file(conversation_id: str, file: UploadFile = File(...), sender_id: Optional[str] = None):
     """
-    Upload a file. For images, store as base64 in MongoDB. For other files, use GridFS.
+    Upload a file. For images, store both original and thumbnail as base64 in MongoDB.
+    For other files, use GridFS.
     Return file metadata and file id (string).
     """
     data = await file.read()
@@ -112,15 +136,20 @@ async def upload_file(conversation_id: str, file: UploadFile = File(...), sender
 
     # Check if it's an image
     if mime_type.startswith('image/'):
-        # Store image as base64 in MongoDB for faster access
+        # Generate thumbnail
+        thumbnail_data = generate_image_thumbnail(data)
+
+        # Store both original and thumbnail in MongoDB
         files_col = db['files']
         file_doc = {
             "filename": file.filename,
             "mime": mime_type,
             "data": base64.b64encode(data).decode('utf-8'),
+            "thumbnail": base64.b64encode(thumbnail_data).decode('utf-8'),
             "conversation_id": conversation_id,
             "sender_id": sender_id,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
+            "size": len(data)
         }
         result = await files_col.insert_one(file_doc)
         file_id = str(result.inserted_id)
@@ -130,7 +159,9 @@ async def upload_file(conversation_id: str, file: UploadFile = File(...), sender
             "file_id": file_id,
             "filename": file.filename,
             "mime": mime_type,
-            "url": f"/files/{file_id}"
+            "url": f"/files/{file_id}",
+            "thumbnail_url": f"/files/{file_id}/thumbnail",
+            "size": len(data)
         })
     else:
         # For non-images, use GridFS
@@ -140,7 +171,8 @@ async def upload_file(conversation_id: str, file: UploadFile = File(...), sender
             metadata={
                 "conversation_id": conversation_id,
                 "sender_id": sender_id,
-                "mime": mime_type
+                "mime": mime_type,
+                "size": len(data)
             }
         )
         return JSONResponse(content={
@@ -148,12 +180,14 @@ async def upload_file(conversation_id: str, file: UploadFile = File(...), sender
             "file_id": str(file_id),
             "filename": file.filename,
             "mime": mime_type,
-            "url": f"/files/{file_id}"
+            "url": f"/files/{file_id}",
+            "size": len(data)
         })
 
 
 @router.get("/files/{file_id}")
 async def get_file(file_id: str):
+    """Get file with caching headers"""
     try:
         # Try to get from MongoDB files collection first (for images)
         files_col = db['files']
@@ -166,8 +200,9 @@ async def get_file(file_id: str):
                 content=image_data,
                 media_type=file_doc.get('mime', 'image/jpeg'),
                 headers={
-                    "Cache-Control": "public, max-age=31536000",
-                    "Content-Disposition": f'inline; filename="{file_doc["filename"]}"'
+                    "Cache-Control": "public, max-age=31536000, immutable",
+                    "Content-Disposition": f'inline; filename="{file_doc["filename"]}"',
+                    "ETag": f'"{file_id}"'
                 }
             )
         else:
@@ -186,7 +221,8 @@ async def get_file(file_id: str):
                 media_type=grid_out.metadata.get("mime", "application/octet-stream"),
                 headers={
                     "content-disposition": f'attachment; filename="{grid_out.filename}"',
-                    "Cache-Control": "public, max-age=31536000"
+                    "Cache-Control": "public, max-age=31536000, immutable",
+                    "ETag": f'"{file_id}"'
                 }
             )
     except Exception as e:
@@ -194,10 +230,39 @@ async def get_file(file_id: str):
         raise HTTPException(status_code=404, detail="file not found")
 
 
+@router.get("/files/{file_id}/thumbnail")
+async def get_thumbnail(file_id: str):
+    """Get thumbnail for image files"""
+    try:
+        files_col = db['files']
+        file_doc = await files_col.find_one({"_id": ObjectId(file_id)})
+
+        if not file_doc:
+            raise HTTPException(status_code=404, detail="file not found")
+
+        # Return thumbnail if available, otherwise return original
+        thumbnail_data = file_doc.get('thumbnail', file_doc.get('data'))
+        if not thumbnail_data:
+            raise HTTPException(status_code=404, detail="thumbnail not found")
+
+        image_data = base64.b64decode(thumbnail_data)
+        return Response(
+            content=image_data,
+            media_type=file_doc.get('mime', 'image/jpeg'),
+            headers={
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Content-Disposition": f'inline; filename="thumb_{file_doc["filename"]}"',
+                "ETag": f'"{file_id}-thumb"'
+            }
+        )
+    except Exception as e:
+        print(f"Error getting thumbnail: {e}")
+        raise HTTPException(status_code=404, detail="thumbnail not found")
+
+
 @router.websocket("/ws/chat/{conversation_id}/{client_id}")
 async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
-    origin = ws.headers.get("origin")
-    print("WebSocket Origin:", origin)
+    """WebSocket endpoint for real-time chat"""
     await ws.accept()
     async with rooms_lock:
         rooms[conversation_id][client_id] = ws
@@ -208,11 +273,9 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
             try:
                 msg = json.loads(raw)
             except Exception:
-                # skip invalid json
                 continue
 
             if msg.get("type") == "message":
-                # standardize and add created_at
                 sender = msg.get("sender_id", client_id)
                 content = msg.get("content", "")
                 attachments = msg.get("attachments", []) or []
@@ -227,7 +290,6 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
                     "created_at": datetime.utcnow()
                 }
 
-                # Add reply_to if provided
                 if reply_to:
                     doc["reply_to"] = reply_to
 
@@ -256,7 +318,6 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
                         try:
                             await cws.send_text(json.dumps(payload))
                         except Exception:
-                            # ignore send errors
                             pass
 
     except WebSocketDisconnect:
