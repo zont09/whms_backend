@@ -8,11 +8,13 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # hoặc domain flutter của bạn
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
+
 
 app.include_router(chat_router, prefix="/api")
 app.include_router(call_router, prefix="/call")
