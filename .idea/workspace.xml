@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="git rm --cached src/model">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/firebase/firebase_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/firebase/firebase_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/recommend/recommend_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/recommend/recommend_route.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/recommend/recommend_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/recommend/recommend_service.py" afterDir="false" />
-    </list>
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="update: recommend" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -123,7 +118,7 @@
       <workItem from="1764658427729" duration="654000" />
       <workItem from="1764731875110" duration="215000" />
       <workItem from="1764826910443" duration="26000" />
-      <workItem from="1765086844388" duration="9805000" />
+      <workItem from="1765086844388" duration="10221000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -213,7 +208,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765093676948</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="update: recommend">
+      <option name="closed" value="true" />
+      <created>1765104094203</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1765104094203</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -228,6 +231,7 @@
     <MESSAGE value="uodate update chat api 4" />
     <MESSAGE value="feat: recommend tasker" />
     <MESSAGE value="git rm --cached src/model" />
-    <option name="LAST_COMMIT_MESSAGE" value="git rm --cached src/model" />
+    <MESSAGE value="update: recommend" />
+    <option name="LAST_COMMIT_MESSAGE" value="update: recommend" />
   </component>
 </project>
