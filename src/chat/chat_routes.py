@@ -334,7 +334,6 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
                 attachments = msg.get("attachments", []) or []
                 reply_to = msg.get("reply_to")
 
-                # persist message into DB
                 doc = {
                     "conversation_id": conversation_id,
                     "sender_id": sender,
@@ -367,7 +366,6 @@ async def websocket_chat(ws: WebSocket, conversation_id: str, client_id: str):
 
                 print(f"Broadcasting message {doc_id} to {len(rooms[conversation_id])} clients")
 
-                # broadcast
                 async with rooms_lock:
                     for cws in list(rooms[conversation_id].values()):
                         try:
