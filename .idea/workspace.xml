@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="uodate update chat api 4">
-      <change afterPath="$PROJECT_DIR$/serviceAccountKey_whms.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/configs/firebase_config.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/firebase/firebase_service.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/recommend/model.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/recommend/recommend_route.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/recommend/recommend_service.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chat/chat_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/chat/chat_routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="feat: recommend tasker" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -128,7 +117,7 @@
       <workItem from="1764658427729" duration="654000" />
       <workItem from="1764731875110" duration="215000" />
       <workItem from="1764826910443" duration="26000" />
-      <workItem from="1765086844388" duration="5329000" />
+      <workItem from="1765086844388" duration="5698000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -194,7 +183,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763967300089</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="feat: recommend tasker">
+      <option name="closed" value="true" />
+      <created>1765093048999</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1765093048999</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -207,6 +204,7 @@
     <MESSAGE value="uodate update chat api 2" />
     <MESSAGE value="uodate update chat api 3" />
     <MESSAGE value="uodate update chat api 4" />
-    <option name="LAST_COMMIT_MESSAGE" value="uodate update chat api 4" />
+    <MESSAGE value="feat: recommend tasker" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: recommend tasker" />
   </component>
 </project>
