@@ -3,6 +3,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from typing import List, Dict
 from src.recommend.model import EmployeeRecommendation, RecommendationBreakdown
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class RecommendationService:
@@ -60,6 +63,8 @@ class RecommendationService:
 
             epic, sprint, story = firebase_service.get_task_hierarchy(task_id)
 
+            print(f"[THINK CHECK] Comparing hierarchies: {new_task_hierarchy} - {(epic, sprint, story)} : <{task_id}>")
+
             # Cùng story -> bonus cao nhất
             if story and story == new_story:
                 max_bonus = max(max_bonus, 0.3)
@@ -104,28 +109,62 @@ class RecommendationService:
         - Workload hiện tại
         """
 
+        logger.info("=" * 80)
+        logger.info(f"🎯 BẮT ĐẦU RECOMMENDATION")
+        logger.info(f"📝 Task mới: {new_task_title}")
+        logger.info(f"📋 Type: {new_task_type}, Parent: {new_task_parent}")
+        logger.info(f"👥 Tổng số users: {len(users_data)}")
+        logger.info(f"📦 Tổng số tasks: {len(all_tasks)}")
+
         # Xác định hierarchy của task mới
         if new_task_parent:
             new_task_hierarchy = firebase_service.get_task_hierarchy(new_task_parent)
+            logger.info(
+                f"🏗️ Hierarchy: Epic={new_task_hierarchy[0]}, Sprint={new_task_hierarchy[1]}, Story={new_task_hierarchy[2]}")
         else:
             new_task_hierarchy = ("", "", "")
+            logger.info(f"⚠️ Không có parent - không có hierarchy bonus")
 
         new_task_text = self._preprocess_text(new_task_title, new_task_description)
+        logger.info(f"📄 Task text đã xử lý (first 100 chars): {new_task_text[:100]}...")
+
         recommendations = []
+        users_processed = 0
+        users_with_tasks = 0
+        users_with_completed_tasks = 0
 
         for user in users_data:
             user_id = user.get('id', '')
+            user_name = user.get('name', 'Unknown')
+
             if not user_id:
+                logger.warning(f"⚠️ User không có ID: {user}")
                 continue
+
+            users_processed += 1
 
             # Lấy tasks của user
             user_tasks = [t for t in all_tasks if user_id in t.get('assignees', [])]
-            completed_tasks = [t for t in user_tasks if t.get('status', 0) == 100]
-            active_tasks = [t for t in user_tasks if t.get('status', 0) < 10]
+            completed_tasks = [t for t in user_tasks if t.get('status', 0) == 0]
+            active_tasks = [t for t in user_tasks if t.get('status', 0) >= 100]
+
+            if user_tasks:
+                users_with_tasks += 1
+
+            logger.info(f"\n👤 User: {user_name} (ID: {user_id})")
+            logger.info(
+                f"   📊 Total tasks: {len(user_tasks)}, Completed: {len(completed_tasks)}, Active: {len(active_tasks)}")
 
             if not completed_tasks:
-                # Không có lịch sử -> skip
+                logger.info(f"   ❌ Bỏ qua - không có task đã hoàn thành")
                 continue
+
+            users_with_completed_tasks += 1
+
+            # Log một vài completed tasks để debug
+            for i, task in enumerate(completed_tasks[:3]):
+                logger.info(
+                    f"   📝 Task {i + 1}: {task.get('title', 'No title')[:50]}... (status: {task.get('status')})")
 
             # 1. Calculate similarity score
             user_tasks_texts = [
@@ -137,6 +176,7 @@ class RecommendationService:
                 for t in completed_tasks
             ]
             similarity_score = self._calculate_similarity(new_task_text, user_tasks_texts)
+            logger.info(f"   🎯 Similarity score: {similarity_score:.4f}")
 
             # 2. Calculate hierarchy bonus
             hierarchy_bonus = self._calculate_hierarchy_bonus(
@@ -144,15 +184,21 @@ class RecommendationService:
                 completed_tasks,
                 firebase_service
             )
+            logger.info(f"   🏗️ Hierarchy bonus: {hierarchy_bonus:.4f}")
 
             # 3. Calculate workload penalty
             workload_penalty = self._calculate_workload_penalty(len(active_tasks))
+            logger.info(f"   ⚖️ Workload penalty: {workload_penalty:.4f} (active tasks: {len(active_tasks)})")
 
             # 4. Calculate final score
             final_score = (
                                   similarity_score * self.similarity_weight +
                                   hierarchy_bonus * self.hierarchy_weight
                           ) * workload_penalty
+
+            logger.info(f"   ⭐ FINAL SCORE: {final_score:.4f}")
+            logger.info(
+                f"      = ({similarity_score:.4f} × {self.similarity_weight} + {hierarchy_bonus:.4f} × {self.hierarchy_weight}) × {workload_penalty:.4f}")
 
             recommendations.append(
                 EmployeeRecommendation(
@@ -173,5 +219,26 @@ class RecommendationService:
 
         # Sort by final score
         recommendations.sort(key=lambda x: x.final_score, reverse=True)
+
+        logger.info(f"\n" + "=" * 80)
+        logger.info(f"📊 TỔNG KẾT:")
+        logger.info(f"   👥 Users được xử lý: {users_processed}/{len(users_data)}")
+        logger.info(f"   📦 Users có tasks: {users_with_tasks}")
+        logger.info(f"   ✅ Users có completed tasks: {users_with_completed_tasks}")
+        logger.info(f"   🎯 Số lượng recommendations: {len(recommendations)}")
+
+        if recommendations:
+            logger.info(f"\n🏆 TOP {min(top_k, len(recommendations))} RECOMMENDATIONS:")
+            for i, rec in enumerate(recommendations[:top_k], 1):
+                logger.info(
+                    f"   {i}. {rec.name} - Score: {rec.final_score:.4f} (Tasks: {rec.matching_tasks_count}, Workload: {rec.current_workload})")
+        else:
+            logger.warning(f"⚠️ KHÔNG TÌM THẤY RECOMMENDATIONS!")
+            logger.warning(f"   Lý do có thể:")
+            logger.warning(f"   - Không có user nào có completed tasks")
+            logger.warning(f"   - Tất cả users đều có similarity score = 0")
+            logger.warning(f"   - Data không đúng format")
+
+        logger.info("=" * 80 + "\n")
 
         return recommendations[:top_k]

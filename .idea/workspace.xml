@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="git rm --cached src/model" />
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="git rm --cached src/model">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/firebase/firebase_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/firebase/firebase_service.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/recommend/recommend_route.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/recommend/recommend_route.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/recommend/recommend_service.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/recommend/recommend_service.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,6 +40,7 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/phamngocthinh/workspace/KLTN/back-end/whms_backend",
@@ -117,7 +123,7 @@
       <workItem from="1764658427729" duration="654000" />
       <workItem from="1764731875110" duration="215000" />
       <workItem from="1764826910443" duration="26000" />
-      <workItem from="1765086844388" duration="6019000" />
+      <workItem from="1765086844388" duration="9805000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -199,7 +205,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765093320619</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="git rm --cached src/model">
+      <option name="closed" value="true" />
+      <created>1765093676948</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1765093676948</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

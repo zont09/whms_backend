@@ -1,6 +1,9 @@
 from google.cloud.firestore_v1 import FieldFilter
 from typing import List, Dict, Tuple
 from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FirebaseService:
@@ -9,15 +12,17 @@ class FirebaseService:
 
     def get_all_users(self) -> List[Dict]:
         """Lấy tất cả users từ Firestore"""
+        logger.info("🔍 Đang query collection 'users'...")
         users_ref = self.db.collection('users')
         docs = users_ref.where(filter=FieldFilter('enable', '==', True)).stream()
 
         users = []
         for doc in docs:
             data = doc.to_dict()
-            data['id'] = doc.id
+            # data['id'] = doc.id
             users.append(data)
 
+        logger.info(f"✅ Tìm thấy {len(users)} users với enable=True")
         return users
 
     def get_user_by_id(self, user_id: str) -> Dict:
@@ -31,15 +36,17 @@ class FirebaseService:
 
     def get_all_tasks(self) -> List[Dict]:
         """Lấy tất cả tasks từ Firestore"""
+        logger.info("🔍 Đang query collection 'whms_pls_working_unit'...")
         tasks_ref = self.db.collection('whms_pls_working_unit')
         docs = tasks_ref.where(filter=FieldFilter('enable', '==', True)).stream()
 
         tasks = []
         for doc in docs:
             data = doc.to_dict()
-            data['id'] = doc.id
+            # data['id'] = doc.id
             tasks.append(data)
 
+        logger.info(f"✅ Tìm thấy {len(tasks)} tasks với enable=True")
         return tasks
 
     def get_tasks_by_assignee(self, user_id: str) -> List[Dict]:
@@ -72,7 +79,7 @@ class FirebaseService:
         all_tasks = self.get_tasks_by_assignee(user_id)
 
         # Lọc tasks đã hoàn thành
-        completed_tasks = [t for t in all_tasks if t.get('status', 0) == 100]
+        completed_tasks = [t for t in all_tasks if t.get('status', 0) >= 10]
 
         # Lọc theo thời gian (tùy chọn)
         if limit_days > 0:
@@ -90,7 +97,7 @@ class FirebaseService:
         Lấy thông tin hierarchy của task
         Returns: (epic_id, sprint_id, story_id)
         """
-        task = self.db.collection('whms_pls_working_unit').document(task_id).get()
+        task = self.db.collection('whms_pls_working_unit').document(f"whms_pls_working_unit_{task_id}").get()
         if not task.exists:
             return ("", "", "")
 
@@ -143,7 +150,7 @@ class FirebaseService:
             if parent_id:
                 epic_id = parent_id
 
-        elif task_type == 'Giai đoạn':
+        elif task_type == 'Dự án':
             epic_id = task_id
 
         return (epic_id, sprint_id, story_id)
