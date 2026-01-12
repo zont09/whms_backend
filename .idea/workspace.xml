@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="update: recommend" />
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="update: recommend">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/video/video_server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/video/video_server.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,23 +34,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/phamngocthinh/workspace/KLTN/back-end/whms_backend",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/phamngocthinh/workspace/KLTN/back-end/whms_backend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -118,7 +121,25 @@
       <workItem from="1764658427729" duration="654000" />
       <workItem from="1764731875110" duration="215000" />
       <workItem from="1764826910443" duration="26000" />
-      <workItem from="1765086844388" duration="10221000" />
+      <workItem from="1765086844388" duration="10303000" />
+      <workItem from="1765269835934" duration="587000" />
+      <workItem from="1765337058698" duration="211000" />
+      <workItem from="1765419774000" duration="601000" />
+      <workItem from="1765424171994" duration="599000" />
+      <workItem from="1765429327561" duration="48000" />
+      <workItem from="1765510279255" duration="597000" />
+      <workItem from="1765770417320" duration="598000" />
+      <workItem from="1765874237571" duration="599000" />
+      <workItem from="1765951697731" duration="612000" />
+      <workItem from="1765956256139" duration="215000" />
+      <workItem from="1765956562484" duration="42000" />
+      <workItem from="1765956798580" duration="604000" />
+      <workItem from="1766137491051" duration="629000" />
+      <workItem from="1766218524024" duration="3093000" />
+      <workItem from="1766401558382" duration="603000" />
+      <workItem from="1766473358406" duration="14000" />
+      <workItem from="1767325735214" duration="6591000" />
+      <workItem from="1767582025601" duration="603000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -216,7 +237,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765104094203</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="update: recommend">
+      <option name="closed" value="true" />
+      <created>1765104179507</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1765104179507</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
