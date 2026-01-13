@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="update: update deploy">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-    </list>
+    <list default="true" id="6a7873a0-202c-4210-839e-7c7697e99505" name="Changes" comment="update: update deploy" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -141,7 +138,7 @@
       <workItem from="1767325735214" duration="6591000" />
       <workItem from="1767582025601" duration="603000" />
       <workItem from="1768224663033" duration="572000" />
-      <workItem from="1768241052542" duration="3069000" />
+      <workItem from="1768241052542" duration="3415000" />
     </task>
     <task id="LOCAL-00001" summary="video call">
       <option name="closed" value="true" />
@@ -263,7 +260,15 @@
       <option name="project" value="LOCAL" />
       <updated>1768243043114</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="update: update deploy">
+      <option name="closed" value="true" />
+      <created>1768263693651</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1768263693651</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
